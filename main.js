@@ -2,6 +2,8 @@
 
 console.log('"main.js" start');
 
+// introduction start
+
 var inputField = $('#input');
 var resultsField = $('#results');
 
@@ -49,31 +51,39 @@ suggestions.subscribe(data => {
     $('<li>Error: ' + error + '</li>').appendTo(resultsField);
 });
 
+// introduction stop
 
-var startupRequestStream = Rx.Observable.of('https://api.github.com/users');
 
-var refreshButton = $('.refresh');
-var refreshClickStream = Rx.Observable.fromEvent(refreshButton, 'click');
+// design guidelines introduction start
 
 function mapClickEventToUrlString() {
 	var randomOffset = Math.floor(Math.random() * 500);
 	return 'https://api.github.com/users?since=' + randomOffset;
 }
 
-var requestOnRefreshStream = refreshClickStream.map(mapClickEventToUrlString);
+function mapUrlStringToResponseStream(requestUrl) {
+	return Rx.Observable.fromPromise(jQuery.getJSON(requestUrl));
+}
 
-var requestStream = Rx.Observable.merge(
-	startupRequestStream, requestOnRefreshStream
+var responseStream = Rx.Observable
+	.fromEvent($('.refresh'), 'click')
+	.startWith('startup click')
+	.map(mapClickEventToUrlString)
+	.flatMap(mapUrlStringToResponseStream);
+
+responseStream.subscribe(
+	function(response) {
+		// render `response` to the DOM however you wish
+		console.log('subscriber catch event');
+	},
+	function(error) {
+		// catch error event
+		console.log('caught error');
+		console.log(error);
+	}
 );
 
-var responseStream = requestStream
-  .flatMap(function(requestUrl) {
-    return Rx.Observable.fromPromise(jQuery.getJSON(requestUrl));
-  });
-
-responseStream.subscribe(function(response) {
-  // render `response` to the DOM however you wish
-});
+// design guidelines introduction stop
 
 
 console.log('"main.js" stop');
