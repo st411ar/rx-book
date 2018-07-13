@@ -21,17 +21,21 @@ function mapUsersToRandomUser(listUsers) {
 	return listUsers[ Math.floor(Math.random() * listUsers.length) ];
 }
 
+function renderSuggestion(index, suggestion) {
+	var isHide = suggestion === null;
+	var operation = isHide ? 'hide' : 'render';
+	console.log(operation + ' suggestion ' + (index + 1));
+	console.log(suggestion);
+}
+
 var renderSuggestionFunctions = [];
 for(var i = 0; i < SUGGESTIONS_COUNT; i++) {
 	var suggestion = 'suggestion';
 
-	var func = new Function(suggestion, 
-		"var operation = suggestion === null ? 'hide' : 'render';" +
-		"console.log(operation + ' suggestion ' + (" + i + "+1));" +
-		"console.log(suggestion);"
+	renderSuggestionFunctions[i] = new Function(suggestion,
+		"var index = " + i + ";" +
+		"renderSuggestion(index, suggestion);"
 	);
-
-	renderSuggestionFunctions[i] = func;
 }
 
 
