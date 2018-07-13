@@ -2,6 +2,8 @@
 
 console.log('"main.js" start');
 
+const SUGGESTIONS_COUNT = 3;
+
 function mapClickEventToUrlString(input) {
 	var randomOffset = Math.floor(Math.random() * 500);
 	return 'https://api.github.com/users?since=' + randomOffset;
@@ -19,14 +21,17 @@ function mapUsersToRandomUser(listUsers) {
 	return listUsers[ Math.floor(Math.random() * listUsers.length) ];
 }
 
-function renderSuggestion1(suggestion) {
-	if (suggestion === null) {
-		console.log('hide suggestion 1');
-		console.log(suggestion);
-	} else {
-		console.log('render suggestion 1');
-		console.log(suggestion);
-	}
+var renderSuggestionFunctions = [];
+for(var i = 0; i < SUGGESTIONS_COUNT; i++) {
+	var suggestion = 'suggestion';
+
+	var func = new Function(suggestion, 
+		"var operation = suggestion === null ? 'hide' : 'render';" +
+		"console.log(operation + ' suggestion ' + (" + i + "+1));" +
+		"console.log(suggestion);"
+	);
+
+	renderSuggestionFunctions[i] = func;
 }
 
 
@@ -38,12 +43,18 @@ var responseStream = refreshClickStream
 	.flatMap(mapUrlStringToResponseStream)
 ;
 
-var suggestion1Stream = responseStream
-	.map(mapUsersToRandomUser)
-	.startWith(null)
-	.merge(refreshClickStream.map(getNull))
-;
+var suggestionStreams = [];
+for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
+	var stream = responseStream
+		.map(mapUsersToRandomUser)
+		.startWith(null)
+		.merge(refreshClickStream.map(getNull))
+	;
+	suggestionStreams.push(stream);
+}
 
-suggestion1Stream.subscribe(renderSuggestion1);
+for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
+	suggestionStreams[i].subscribe(renderSuggestionFunctions[i]);
+}
 
 console.log('"main.js" stop');
