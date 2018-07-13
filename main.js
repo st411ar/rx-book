@@ -57,20 +57,12 @@ suggestions.subscribe(data => {
 // design guidelines introduction start
 
 function mapClickEventToUrlString(input) {
-	console.log('mapClickEventToUrlString start');
-	console.log(input);
 	var randomOffset = Math.floor(Math.random() * 500);
-	var urlString = 'https://api.github.com/users?since=' + randomOffset;
-	console.log('mapClickEventToUrlString stop');
-	return urlString;
+	return 'https://api.github.com/users?since=' + randomOffset;
 }
 
 function mapUrlStringToResponseStream(requestUrl) {
-	console.log('mapUrlStringToResponseStream start');
-	console.log('requestUrl: "' + requestUrl + '"');
-	var responseStream = Rx.Observable.fromPromise(jQuery.getJSON(requestUrl));
-	console.log('mapUrlStringToResponseStream stop');
-	return responseStream;
+	return Rx.Observable.fromPromise(jQuery.getJSON(requestUrl));
 }
 
 function getNull() {
@@ -82,20 +74,13 @@ function mapUsersToRandomUser(listUsers) {
 }
 
 function renderSuggestion1(suggestion) {
-	// render the 1st suggestion to the DOM
-	console.log('render suggestion 1 start');
 	if (suggestion === null) {
-		// hide suggestion 1 DOM element
-		console.log('hide suggestion 1 DOM element start');
+		console.log('hide suggestion 1');
 		console.log(suggestion);
-		console.log('hide suggestion 1 DOM element stop');
 	} else {
-		// show suggestion 1 DOM element and render the data
-		console.log('show suggestion 1 DOM element and render the data start');
+		console.log('render suggestion 1');
 		console.log(suggestion);
-		console.log('show suggestion 1 DOM element and render the data stop');
 	}
-	console.log('render suggestion 1 stop');
 }
 
 
@@ -104,22 +89,22 @@ var refreshClickStream = Rx.Observable.fromEvent($('.refresh'), 'click');
 var responseStream = refreshClickStream
 	.startWith('startup click')
 	.map(mapClickEventToUrlString)
-	.flatMap(mapUrlStringToResponseStream);
+	.flatMap(mapUrlStringToResponseStream)
+;
 
 var suggestion1Stream = responseStream
 	.map(mapUsersToRandomUser)
-//	.startWith(null)
-	.merge(refreshClickStream.map(getNull));
+	.startWith(null)
+	.merge(refreshClickStream.map(getNull))
+;
 
 
 responseStream.subscribe(
 	function(response) {
-		// render `response` to the DOM however you wish
 		console.log('subscriber receive event');
 		console.log(response);
 	},
 	function(error) {
-		// catch error event
 		console.log('subscriber caught error');
 		console.log(error);
 	}
