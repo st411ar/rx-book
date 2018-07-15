@@ -21,20 +21,31 @@ function mapUsersToRandomUser(listUsers) {
 	return listUsers[ Math.floor(Math.random() * listUsers.length) ];
 }
 
-function renderSuggestion(index, suggestion) {
+function renderSuggestion(orderNumber, suggestion) {
 	var isHide = suggestion === null;
-	var operation = isHide ? 'hide' : 'render';
-	console.log(operation + ' suggestion ' + (index + 1));
-	console.log(suggestion);
+
+	var selector = '#suggestion' + orderNumber;
+	var element = $(selector);
+	if (isHide) {
+		element.hide();
+	} else {
+		$('img', element)[0].src = suggestion.avatar_url;
+		var link = $('a', element)[0];
+		link.href = suggestion.html_url;
+		link.textContent = suggestion.login;
+
+		element.show();
+	}
 }
 
 var renderSuggestionFunctions = [];
 for(var i = 0; i < SUGGESTIONS_COUNT; i++) {
 	var suggestion = 'suggestion';
 
-	renderSuggestionFunctions[i] = new Function(suggestion,
-		"var index = " + i + ";" +
-		"renderSuggestion(index, suggestion);"
+	renderSuggestionFunctions[i] = new Function(
+		suggestion,
+		"var orderNumber = " + i + " + 1;" +
+		"renderSuggestion(orderNumber, suggestion);"
 	);
 }
 
@@ -45,20 +56,30 @@ var responseStream = refreshClickStream
 	.startWith('startup click')
 	.map(mapClickEventToUrlString)
 	.flatMap(mapUrlStringToResponseStream)
-;
+	.catch(
+		function(error, caught) {
+			console.log('error interception');
+			return refreshClickStream.map(getNull);
+		}
+	);
 
 var suggestionStreams = [];
 for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
 	var stream = responseStream
 		.map(mapUsersToRandomUser)
 		.startWith(null)
-		.merge(refreshClickStream.map(getNull))
-	;
+		.merge(refreshClickStream.map(getNull));
 	suggestionStreams.push(stream);
 }
 
 for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
-	suggestionStreams[i].subscribe(renderSuggestionFunctions[i]);
+	suggestionStreams[i].subscribe(
+		renderSuggestionFunctions[i],
+		function(error) {
+			console.log('catch error');
+			console.log(error);
+		}
+	);
 }
 
 console.log('"main.js" stop');
