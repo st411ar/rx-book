@@ -2,7 +2,13 @@
 
 console.log('"main.js" start');
 
+
 const SUGGESTIONS_COUNT = 3;
+
+
+function getNull() {
+	return null;
+}
 
 function mapClickEventToUrlString(input) {
 	var randomOffset = Math.floor(Math.random() * 500);
@@ -13,9 +19,6 @@ function mapUrlStringToResponseStream(requestUrl) {
 	return Rx.Observable.fromPromise(jQuery.getJSON(requestUrl));
 }
 
-function getNull() {
-	return null;
-}
 
 function mapUsersToRandomUser(click, listUsers) {
 	return listUsers[ Math.floor(Math.random() * listUsers.length) ];
@@ -37,6 +40,7 @@ function renderSuggestion(orderNumber, suggestion) {
 		element.show();
 	}
 }
+
 
 var renderSuggestionFunctions = [];
 for(var i = 0; i < SUGGESTIONS_COUNT; i++) {
@@ -79,6 +83,7 @@ for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
 	suggestionStreams.push(stream);
 }
 
+
 for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
 	suggestionStreams[i].subscribe(
 		renderSuggestionFunctions[i],
@@ -88,5 +93,6 @@ for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
 		}
 	);
 }
+
 
 console.log('"main.js" stop');
