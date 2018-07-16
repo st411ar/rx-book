@@ -41,7 +41,6 @@ function renderSuggestion(orderNumber, suggestion) {
 	}
 }
 
-
 var renderSuggestionFunctions = [];
 for(var i = 0; i < SUGGESTIONS_COUNT; i++) {
 	var suggestion = 'suggestion';
@@ -69,7 +68,7 @@ var responseStream = refreshClickStream
 	.catch(
 		function(error, caught) {
 			console.log('error interception');
-			return refreshClickStream.map(getNull);
+			return Rx.Observable.empty();
 		}
 	);
 
@@ -89,7 +88,6 @@ for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
 		renderSuggestionFunctions[i],
 		function(error) {
 			console.log('catch error');
-			console.log(error);
 		}
 	);
 }
