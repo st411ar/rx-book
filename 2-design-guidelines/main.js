@@ -17,7 +17,7 @@ function getNull() {
 	return null;
 }
 
-function mapUsersToRandomUser(listUsers) {
+function mapUsersToRandomUser(click, listUsers) {
 	return listUsers[ Math.floor(Math.random() * listUsers.length) ];
 }
 
@@ -52,6 +52,12 @@ for(var i = 0; i < SUGGESTIONS_COUNT; i++) {
 
 var refreshClickStream = Rx.Observable.fromEvent($('.refresh'), 'click');
 
+var closeClickStreams = [];
+for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
+	var selector = '#close' + (i + 1);
+	closeClickStreams.push(Rx.Observable.fromEvent($(selector), 'click'));
+}
+
 var responseStream = refreshClickStream
 	.startWith('startup click')
 	.map(mapClickEventToUrlString)
@@ -65,10 +71,11 @@ var responseStream = refreshClickStream
 
 var suggestionStreams = [];
 for (var i = 0; i < SUGGESTIONS_COUNT; i++) {
-	var stream = responseStream
-		.map(mapUsersToRandomUser)
-		.startWith(null)
-		.merge(refreshClickStream.map(getNull));
+	var stream = closeClickStreams[i]
+		.startWith('startup click')
+		.combineLatest(responseStream, mapUsersToRandomUser)
+		.merge(refreshClickStream.map(getNull))
+		.startWith(null);
 	suggestionStreams.push(stream);
 }
 
